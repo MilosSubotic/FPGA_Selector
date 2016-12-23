@@ -90,18 +90,6 @@ else
 	        	if offer["moq"] > quantity
 	        		continue
 	        	end
-	        	
-        		q = offer["in_stock_quantity"]
-        		if q != 0 && q < quantity
-        			if q*2 >= quantity
-        				warn(
-        					"One offer for ", mpn, 
-        					" have half of needed quantity."
-        				)
-        			else
-        				continue
-        			end
-        		end
 		    	
 		    	p = nothing
 		    	for bq_price in prices[currency]
@@ -118,6 +106,7 @@ else
 		    	
 	        	@show offer["sku"]
 	        	@show offer["seller"]["name"]
+				@show offer["in_stock_quantity"]
 		    	@show price
 	        end
 		end
