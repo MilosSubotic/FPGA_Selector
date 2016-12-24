@@ -7,14 +7,13 @@ using Tables
 
 families = read_tables()
 
-display(families["Artix-7"]["summary"])
-display(families["Artix-7"]["devices"])
-display(families["Artix-7"]["speed_grades"])
-display(families["Artix-7"]["simple_speed_grades"])
-display(families["Artix-7"]["packages"])
-display(families["Artix-7"]["grouped_packages"])
-display(families["Artix-7"]["pin_types"])
-display(families["Artix-7"]["dev_pack_combs"])
+#TODO Check:
+# - cost per pin
+# - cost per pin bandwidth
+# - cost per SO-DIMM badwidth (sharing common pins or not)
+# - compare price with and without stock
+# - cost with and without PCIe
+# - without PCIe and user rest of SO-DIMM pins for parallel bus.
 
 ###############################################################################
 
