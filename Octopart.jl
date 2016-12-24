@@ -1,7 +1,7 @@
 
 module Octopart
 
-	export get_offers
+	export get_offers, get_offers_for_FPGAs
 
 	###########################################################################
 
@@ -12,8 +12,6 @@ module Octopart
 	using Requests
 	using JSON
 	using DataFrames
-
-	###########################################################################
 	
 	function get_offers(
 		search_mpns::Vector,
@@ -128,7 +126,58 @@ module Octopart
 		end
 
 
-		all_offers
+		return all_offers
+	end
+
+
+	using Iterators
+
+	function get_offers_for_FPGAs(
+		FPGA_families,
+		needed_quantity::Integer,
+		currencies_to_eur::Dict,
+		simple_speed_grades::Bool
+	)
+		search_mpns = []
+		dev_speed_pack = []
+		for f in values(FPGA_families)
+			dpc = f["dev_pack_combs"][:dev_pack]
+			if simple_speed_grades
+				sg = f["simple_speed_grades"]
+			else
+				sg = f["speed_grades"]
+			end
+			# Cartesian product.
+			cp = product(dpc, sg)
+			# Concat to MPN and collect.
+			m = collect(map((t) -> t[1][1] * t[2] * t[1][2] * "*", cp))
+			append!(search_mpns, m)
+	
+			a = collect(map((t) -> (t[1][1], t[2], t[1][2]), cp))
+			append!(dev_speed_pack, a)
+		end
+
+		o = get_offers(
+			search_mpns,
+			needed_quantity,
+			currencies_to_eur
+		)
+		
+		offers = DataFrame()
+		i = [findfirst(search_mpns, sm) for sm in o[:search_mpn]]
+		assert(all(i != 0))
+		dsp = dev_speed_pack[i]
+		offers[:device] = [t[1] for t in dsp]
+		offers[:speed_grade] = [t[2] for t in dsp]
+		offers[:package] = [t[3] for t in dsp]
+		offers[:mpn] = o[:mpn]
+		offers[:sku] = o[:sku]
+		offers[:seller] = o[:seller]
+		offers[:stock] = o[:stock]
+		offers[:price] = o[:price]
+		
+		
+		return offers
 	end
 
 	###########################################################################
