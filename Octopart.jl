@@ -1,7 +1,7 @@
 
 module Octopart
 
-	export get_prices
+	export get_offers
 
 	###########################################################################
 
@@ -14,7 +14,7 @@ module Octopart
 
 	###########################################################################
 	
-	function get_prices(
+	function get_offers(
 		MPNs::Vector,
 		needed_quantity::Integer,
 		currencies_to_eur::Dict
@@ -25,6 +25,8 @@ module Octopart
 			MPNs
 			
 		)
+		#TODO Chunked requests.
+		queries = queries[1:20]
 
 		res = Requests.get(
 			"http://octopart.com/api/v3/parts/match";
@@ -36,7 +38,10 @@ module Octopart
 		)
 		if res.status != 200
 			critical_error_response = JSON.parse(String(res.data))
-			println(critical_error_response["message"])
+			error(
+				"Failed to obtain offers from octopart: ",
+				critical_error_response["message"]
+			)
 		else
 			part_match_response = JSON.parse(String(res.data))
 
