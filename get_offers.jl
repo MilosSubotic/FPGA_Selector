@@ -27,7 +27,7 @@ offers = get_offers_for_FPGAs(
 	simple_speed_grades
 )
 
-#TODO Save offers with params.
+#TODO Save offers with params to XLS.
 
 ###############################################################################
 

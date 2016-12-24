@@ -174,6 +174,7 @@ module Octopart
 		offers[:sku] = o[:sku]
 		offers[:seller] = o[:seller]
 		offers[:stock] = o[:stock]
+		offers[:stock_vs_need] = o[:stock] - needed_quantity
 		offers[:price] = o[:price]
 		
 		

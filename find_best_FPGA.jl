@@ -7,6 +7,13 @@ using Tables
 
 families = read_tables()
 
+#TODO Read offers with params from XLS. If no XLS exists, run get_offers.jl.
+
+###############################################################################
+
+#TODO Make super table with all kind of params needed for check bellow.
+# Save it just for documentation.
+
 #TODO Check:
 # - cost per pin
 # - cost per pin bandwidth
