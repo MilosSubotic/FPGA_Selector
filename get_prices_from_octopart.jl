@@ -30,6 +30,7 @@ queries = [
 	Dict("mpn" => "XC7A15T-1FTG256C", "limit" => 20)
 ]
 
+#TODO Move to separate module, so we could use it for DDR also.
 res = Requests.get(
 	"http://octopart.com/api/v3/parts/match";
 	query = Dict(
