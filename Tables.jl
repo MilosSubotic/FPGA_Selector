@@ -45,6 +45,9 @@ module Tables
 			
 			ms = read_and_clean_table(fn, "Memory_Speed", "B1:ZZ2")
 			speed_grades = ms[!isna(ms[:])]
+			simple_speed_grades = speed_grades[
+				Bool[length(s) == 2 for s in speed_grades]
+			]
 			
 			pt = read_and_clean_table(fn, "Pins", "B5:ZZ5")
 			pt_per_p = Int(length(pt)/length(grouped_packages))
@@ -55,7 +58,7 @@ module Tables
 			# First column is device-package combination.
 			# Others columns are pin count for pin_types, respectively.
 			dev_pack_combs = DataFrame()
-			dev_pack_combs[Symbol("dev-pack")] = []
+			dev_pack_combs[:dev_pack] = []
 			for pt in pin_types
 				dev_pack_combs[Symbol(pt)] = []
 			end
@@ -76,6 +79,7 @@ module Tables
 				"summary" => s,
 				"devices" => devices,
 				"speed_grades" => speed_grades,
+				"simple_speed_grades" => simple_speed_grades,
 				"packages" => packages,
 				"grouped_packages" => grouped_packages,
 				"pin_types" => pin_types,
