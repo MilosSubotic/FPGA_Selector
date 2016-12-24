@@ -47,5 +47,7 @@ module ReadTables
 		
 		families
 	end
+	
+	#TODO Reading and writing prices. Rename module to Tables.
 
 end # ReadTables
