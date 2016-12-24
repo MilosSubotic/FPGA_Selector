@@ -1,5 +1,5 @@
 
-module ReadTables
+module Tables
 
 	export read_tables
 
@@ -48,6 +48,6 @@ module ReadTables
 		families
 	end
 	
-	#TODO Reading and writing prices. Rename module to Tables.
+	#TODO Reading and writing prices.
 
-end # ReadTables
+end # Tables
