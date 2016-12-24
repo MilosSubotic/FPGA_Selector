@@ -10,8 +10,8 @@ module ReadTables
 	
 	function read_and_clean_table(file_name, sheet, range)
 		t = DataArray(Taro.readxl(file_name, sheet, range, header=false));
-		t = t[[!all(isna(t[r, :])) for r in 1:size(t)[1]], :]
-		t = t[:, [!all(isna(t[:, c])) for c in 1:size(t)[2]]]
+		t = t[Bool[!all(isna(t[r, :])) for r in 1:size(t)[1]], :]
+		t = t[:, Bool[!all(isna(t[:, c])) for c in 1:size(t)[2]]]
 		return t
 	end
 
@@ -28,7 +28,7 @@ module ReadTables
 		for fn in xls_files
 			name = basename(fn)[1:end-length(".xls")]
 						
-			s = read_and_clean_table(fn, "Summary", "A3:N1000")
+			s = read_and_clean_table(fn, "Summary", "A3:N30")
 			devices = s[:, 1][:]
 			p = read_and_clean_table(fn, "Pins", "B1:ZZ2")
 			packages = p[!isna(p[:])]
