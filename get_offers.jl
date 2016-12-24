@@ -21,7 +21,8 @@ using Iterators
 
 families = read_tables()
 
-MPNs = []
+search_mpns = []
+dev_speed_pack = []
 for f in values(families)
 	dpc = f["dev_pack_combs"][:dev_pack]
 	if simple_speed_grades
@@ -32,12 +33,15 @@ for f in values(families)
 	# Cartesian product.
 	cp = product(dpc, sg)
 	# Concat to MPN and collect.
-	m = collect(map((t) -> t[1][1] * t[2] * t[1][2], cp))
-	append!(MPNs, m)
+	m = collect(map((t) -> t[1][1] * t[2] * t[1][2] * "*", cp))
+	append!(search_mpns, m)
+	
+	a = collect(map((t) -> (t[1][1], t[2], t[1][2]), cp))
+	append!(dev_speed_pack, a)
 end
 
-get_offers(
-	MPNs,
+offers = get_offers(
+	search_mpns,
 	needed_quantity,
 	currencies_to_eur
 )
