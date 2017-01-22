@@ -18,7 +18,7 @@ offers = read_table("tmp/offers.xls", "offers")
 ###############################################################################
 
 # Super table with all kind of params needed for check bellow.
-uber_table = deepcopy(offers)
+uber_table = offers
 
 function pins(r)
 	dpc_t = families[r[:family]]["dev_pack_combs"]
