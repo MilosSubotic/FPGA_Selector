@@ -36,7 +36,7 @@ module Tables
 			name = basename(fn)[1:end-length(".xls")]
 
 			#TODO Headers.
-			hs = read_and_clean_table(fn, "Summary", "A1:N1000")
+			hs = read_and_clean_table(fn, "Summary", "A1:ZZ1000")
 			h = hs[1, :][:]
 			s = hs[2:end, :]
 
@@ -146,7 +146,7 @@ module Tables
 
 	# Reading DataFrame per sheets to XLS with header as first row.
 	function read_table(file_name, sheet)
-		hf = read_and_clean_table(file_name, sheet, "A1:N100000")
+		hf = read_and_clean_table(file_name, sheet, "A1:ZZ100000")
 		h = hf[1, :][:]
 		f = hf[2:end, :]
 
