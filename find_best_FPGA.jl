@@ -5,7 +5,7 @@ using Tables
 
 ###############################################################################
 
-families = read_tables()
+families = read_families()
 
 #TODO Read offers with params from XLS. If no XLS exists, run get_offers.jl.
 

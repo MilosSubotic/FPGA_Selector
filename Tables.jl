@@ -1,14 +1,14 @@
 
 module Tables
 
-	export read_tables
+	export read_families
 
 	using Taro
 	Taro.init()
-	
+
 	using DataArrays
 	using DataFrames
-	
+
 	#TODO Make some max i.e. end for range coding, like small x or whatever.
 	function read_and_clean_table(file_name, sheet, range)
 		t = DataArray(Taro.readxl(file_name, sheet, range, header=false));
@@ -17,22 +17,22 @@ module Tables
 		return t
 	end
 
-	function read_tables()
+	function read_families()
 		xls_files = []
-		for (r, d, f) in walkdir("tables/")
+		for (r, d, f) in walkdir("families/")
 			for ff in f
 				push!(xls_files, joinpath(r, ff))
 			end
 		end
-		
+
 		families = Dict{}()
-		
+
 		for fn in xls_files
 			name = basename(fn)[1:end-length(".xls")]
-						
+
 			s = read_and_clean_table(fn, "Summary", "A3:N30")
 			devices = s[:, 1][:] # Remove NAs.
-			
+
 			p = read_and_clean_table(fn, "Pins", "B1:ZZ2")
 			packages = p[!isna(p[:])]
 			# Grouped by compatibility.
@@ -42,19 +42,19 @@ module Tables
 				gp = gp[!isna(gp)] # Remove NAs.
 				push!(grouped_packages, gp)
 			end
-			
+
 			ms = read_and_clean_table(fn, "Memory_Speed", "B1:ZZ2")
 			speed_grades = ms[!isna(ms[:])]
 			simple_speed_grades = speed_grades[
 				Bool[length(s) == 2 for s in speed_grades]
 			]
-			
+
 			pt = read_and_clean_table(fn, "Pins", "B5:ZZ5")
 			pt_per_p = Int(length(pt)/length(grouped_packages))
 			pin_types = pt[1:pt_per_p]
-			
+
 			combs = read_and_clean_table(fn, "Pins", "B7:ZZ30")
-			
+
 			# First column is device-package combination.
 			# Others columns are pin count for pin_types, respectively.
 			dev_pack_combs = DataFrame()
@@ -74,7 +74,7 @@ module Tables
 					end
 				end
 			end
-					
+
 			tables = Dict(
 				"summary" => s,
 				"devices" => devices,
@@ -85,15 +85,15 @@ module Tables
 				"pin_types" => pin_types,
 				"dev_pack_combs" => dev_pack_combs
 			)
-			
+
 			families[name] = tables
-			
+
 		end
-		
+
 		families
 	end
-	
-	#TODO Reading and writing DataFrame per sheets to XLS with header 
+
+	#TODO Reading and writing DataFrame per sheets to XLS with header
 	# as first row.
 
 end # Tables

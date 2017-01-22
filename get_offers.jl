@@ -18,10 +18,10 @@ using Octopart
 
 ###############################################################################
 
-FPGA_families = read_tables()
+FPGA_families = read_families()
 
 offers = get_offers_for_FPGAs(
-	FPGA_families,	
+	FPGA_families,
 	needed_quantity,
 	currencies_to_eur,
 	simple_speed_grades
