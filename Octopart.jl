@@ -142,7 +142,8 @@ module Octopart
 	)
 		search_mpns = []
 		dev_speed_pack = []
-		for f in values(FPGA_families)
+		family_names = []
+		for (fn, f) in FPGA_families
 			dpc = f["dev_pack_combs"][:dev_pack]
 			if simple_speed_grades
 				sg = f["simple_speed_grades"]
@@ -157,6 +158,8 @@ module Octopart
 
 			a = collect(map((t) -> (t[1][1], t[2], t[1][2]), cp))
 			append!(dev_speed_pack, a)
+
+			append!(family_names, fill(fn, length(search_mpns)))
 		end
 
 		o = get_offers(
@@ -165,9 +168,11 @@ module Octopart
 			currencies_to_eur
 		)
 
-		offers = DataFrame()
+		# All found.
 		i = [findfirst(search_mpns, sm) for sm in o[:search_mpn]]
 		assert(all(i != 0))
+		offers = DataFrame()
+		offers[:family] = family_names[i]
 		dsp = dev_speed_pack[i]
 		offers[:device] = [t[1] for t in dsp]
 		offers[:speed_grade] = [t[2] for t in dsp]
