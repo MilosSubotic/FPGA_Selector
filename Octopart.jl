@@ -4,7 +4,9 @@ module Octopart
 	export get_offers, get_offers_for_FPGAs
 
 	###########################################################################
+	# Params.
 
+	#TODO Read it from some cfg file, so everybody have it's own API key.
 	const API_KEY="48a64d25"
 
 	###########################################################################
@@ -12,7 +14,7 @@ module Octopart
 	using Requests
 	using JSON
 	using DataFrames
-	
+
 	function get_offers(
 		search_mpns::Vector,
 		needed_quantity::Integer,
@@ -59,25 +61,25 @@ module Octopart
 				results = part_match_response["results"]
 
 				for (search_mpn, result) in zip(chunk, results)
-				
+
 					for item in result["items"]
 						mpn = item["mpn"]
-					
+
 						offers = item["offers"]
 						for offer in offers
 							prices = offer["prices"]
-						
+
 							if length(prices) == 0
 								continue
 							end
-						
+
 							if !("EUR" in keys(prices))
 								currency = first(keys(prices))
 							else
 								currency = "EUR"
 							end
 							cur_mul = currencies_to_eur[currency]
-						
+
 
 							om = offer["order_multiple"]
 							if om != nothing && om != 1
@@ -85,44 +87,44 @@ module Octopart
 									continue
 								else
 									warn(
-										"One offer for ", mpn, 
+										"One offer for ", mpn,
 										" have order multiple of ", om
 									)
 								end
 							end
-						
+
 							if offer["moq"] != nothing
 								if offer["moq"] > needed_quantity
 									continue
 								end
 							end
-					
+
 							p = nothing
 							for bq_price in prices[currency]
 								if bq_price[1] > needed_quantity
 									break
 								end
-						
+
 								p = bq_price[2]
 							end
 							if p == nothing
 								continue
 							end
 							price = parse(Float64, p) * cur_mul
-					
+
 							sku = offer["sku"]
 							seller = offer["seller"]["name"]
 							stock = offer["in_stock_quantity"]
-							
+
 							push!(
-								all_offers, 
+								all_offers,
 								[search_mpn, mpn, sku, seller, stock, price]
 							)
 						end
 					end
 				end
 			end
-			
+
 		end
 
 
@@ -152,7 +154,7 @@ module Octopart
 			# Concat to MPN and collect.
 			m = collect(map((t) -> t[1][1] * t[2] * t[1][2] * "*", cp))
 			append!(search_mpns, m)
-	
+
 			a = collect(map((t) -> (t[1][1], t[2], t[1][2]), cp))
 			append!(dev_speed_pack, a)
 		end
@@ -162,7 +164,7 @@ module Octopart
 			needed_quantity,
 			currencies_to_eur
 		)
-		
+
 		offers = DataFrame()
 		i = [findfirst(search_mpns, sm) for sm in o[:search_mpn]]
 		assert(all(i != 0))
@@ -176,8 +178,8 @@ module Octopart
 		offers[:stock] = o[:stock]
 		offers[:stock_vs_need] = o[:stock] - needed_quantity
 		offers[:price] = o[:price]
-		
-		
+
+
 		return offers
 	end
 
