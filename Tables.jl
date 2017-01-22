@@ -3,7 +3,8 @@ module Tables
 
 	export
 		read_families,
-		write_table
+		write_table,
+		read_table
 
 
 	using Taro
@@ -144,5 +145,17 @@ module Tables
 
 
 	# Reading DataFrame per sheets to XLS with header as first row.
+	function read_table(file_name, sheet)
+		hf = read_and_clean_table(file_name, sheet, "A1:N100000")
+		h = hf[1, :][:]
+		f = hf[2:end, :]
+
+		c = size(f)[2]
+		t = DataFrame(Dict(zip(1:c, [f[:, i] for i in 1:c])))
+		n = Symbol[parse(hh) for hh in h]
+		names!(t.colindex, n)
+
+		return t
+	end
 
 end # Tables

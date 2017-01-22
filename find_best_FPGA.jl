@@ -7,12 +7,23 @@ using Tables
 
 families = read_families()
 
-#TODO Read offers with params from XLS. If no XLS exists, run get_offers.jl.
+#Read offers with params from XLS.
+if !isfile("tmp/offers.xls")
+	include("get_offers.jl")
+end
+
+offers = read_table("tmp/offers.xls", "offers")
 
 ###############################################################################
 
-#TODO Make super table with all kind of params needed for check bellow.
+# Super table with all kind of params needed for check bellow.
+supertable = deepcopy(offers)
 # Save it just for documentation.
+
+
+###############################################################################
+
+sort(df, cols = :B)
 
 #TODO Check:
 # - cost per pin

@@ -20,14 +20,18 @@ using Octopart
 
 ###############################################################################
 
-FPGA_families = read_families()
+families = read_families()
 
-offers = get_offers_for_FPGAs(
-	FPGA_families,
+println("Getting offers from Octopart...")
+
+@time offers = get_offers_for_FPGAs(
+	families,
 	needed_quantity,
 	currencies_to_eur,
 	simple_speed_grades
 )
+
+println("Done!")
 
 # Save offers with params to XLS.
 write_table("tmp/offers.xls", "offers", offers)
