@@ -4,6 +4,7 @@
 
 needed_quantity = 10
 
+#TODO Get from the internet.
 currencies_to_eur = Dict(
 	"EUR" => 1,
 	"GBP" => 1.1845,
