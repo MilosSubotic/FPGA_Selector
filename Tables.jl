@@ -36,7 +36,7 @@ module Tables
 			name = basename(fn)[1:end-length(".xls")]
 
 			#TODO Headers.
-			hs = read_and_clean_table(fn, "Summary", "A1:ZZ1000")
+			hs = read_and_clean_table(fn, "Summary", "A1:Z100")
 			h = hs[1, :][:]
 			s = hs[2:end, :]
 
@@ -58,7 +58,7 @@ module Tables
 
 			devices = s[:, 1][:]
 
-			p = read_and_clean_table(fn, "Pins", "B1:ZZ2")
+			p = read_and_clean_table(fn, "Pins", "B1:Z2")
 			packages = p[!isna(p[:])]
 			# Grouped by compatibility.
 			grouped_packages = []
@@ -68,17 +68,17 @@ module Tables
 				push!(grouped_packages, gp)
 			end
 
-			ms = read_and_clean_table(fn, "Memory_Speed", "B1:ZZ2")
+			ms = read_and_clean_table(fn, "Memory_Speed", "B1:Z2")
 			speed_grades = ms[!isna(ms[:])]
 			simple_speed_grades = speed_grades[
 				Bool[length(s) == 2 for s in speed_grades]
 			]
 
-			pt = read_and_clean_table(fn, "Pins", "B5:ZZ5")
+			pt = read_and_clean_table(fn, "Pins", "B5:Z5")
 			pt_per_p = Int(length(pt)/length(grouped_packages))
 			pin_types = pt[1:pt_per_p]
 
-			combs = read_and_clean_table(fn, "Pins", "B7:ZZ30")
+			combs = read_and_clean_table(fn, "Pins", "B7:Z30")
 
 			# First column is device-package combination.
 			# Others columns are pin count for pin_types, respectively.
@@ -146,7 +146,7 @@ module Tables
 
 	# Reading DataFrame per sheets to XLS with header as first row.
 	function read_table(file_name, sheet)
-		hf = read_and_clean_table(file_name, sheet, "A1:ZZ100000")
+		hf = read_and_clean_table(file_name, sheet, "A1:Z3000")
 		h = hf[1, :][:]
 		f = hf[2:end, :]
 
