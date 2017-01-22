@@ -1,13 +1,17 @@
 
 module Tables
 
-	export read_families
+	export
+		read_families,
+		write_table
+
 
 	using Taro
 	Taro.init()
 
 	using DataArrays
 	using DataFrames
+
 
 	#TODO Make some max i.e. end for range coding, like small x or whatever.
 	function read_and_clean_table(file_name, sheet, range)
@@ -30,8 +34,28 @@ module Tables
 		for fn in xls_files
 			name = basename(fn)[1:end-length(".xls")]
 
-			s = read_and_clean_table(fn, "Summary", "A3:N30")
-			devices = s[:, 1][:] # Remove NAs.
+			#TODO Headers.
+			hs = read_and_clean_table(fn, "Summary", "A1:N1000")
+			h = hs[1, :][:]
+			s = hs[2:end, :]
+
+			c = size(s)[2]
+			summary = DataFrame(Dict(zip(1:c, [s[:, i] for i in 1:c])))
+			function prepare(s)
+				s = replace(s, " ", "_")
+				s = replace(s, "(", "_")
+				s = replace(s, ")", "")
+				s = replace(s, "/", "")
+				if isnumber(s[1])
+					s = "_" * s
+				end
+				return s
+			end
+			n = map(prepare, Vector(h))
+			sn = Symbol[parse(nn) for nn in n]
+			names!(summary.colindex, sn)
+
+			devices = s[:, 1][:]
 
 			p = read_and_clean_table(fn, "Pins", "B1:ZZ2")
 			packages = p[!isna(p[:])]
@@ -76,7 +100,7 @@ module Tables
 			end
 
 			tables = Dict(
-				"summary" => s,
+				"summary" => summary,
 				"devices" => devices,
 				"speed_grades" => speed_grades,
 				"simple_speed_grades" => simple_speed_grades,
@@ -93,7 +117,32 @@ module Tables
 		families
 	end
 
-	#TODO Reading and writing DataFrame per sheets to XLS with header
-	# as first row.
+
+	# Reading DataFrame per sheets to XLS with header as first row.
+	function write_table(file_name, sheet, data_frame::DataFrame)
+		w = Workbook()
+		s = createSheet(w, sheet)
+
+		r = createRow(s, 0)
+		for ci in 1:size(data_frame)[2]
+			c = createCell(r, ci-1)
+			setCellValue(c, string(names(data_frame)[ci]))
+		end
+
+		for ri in 1:size(data_frame)[1]
+			r = createRow(s, ri)
+			for ci in 1:size(data_frame)[2]
+				c = createCell(r, ci-1)
+				setCellValue(c, data_frame[ri, ci])
+			end
+		end
+
+		mkpath(dirname(file_name))
+
+		write(file_name, w)
+	end
+
+
+	# Reading DataFrame per sheets to XLS with header as first row.
 
 end # Tables
