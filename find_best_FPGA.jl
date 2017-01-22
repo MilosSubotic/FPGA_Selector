@@ -6,19 +6,19 @@ using DataFrames
 
 ###############################################################################
 
-@time families = read_families()
+families = read_families()
 
 #Read offers with params from XLS.
 if !isfile("tmp/offers.xls")
 	include("get_offers.jl")
 end
 
-@time offers = read_table("tmp/offers.xls", "offers")
+offers = read_table("tmp/offers.xls", "offers")
 
 ###############################################################################
 
 # Super table with all kind of params needed for check bellow.
-super_table = deepcopy(offers)
+uber_table = deepcopy(offers)
 
 function pins(r)
 	dpc_t = families[r[:family]]["dev_pack_combs"]
@@ -31,22 +31,26 @@ function pins(r)
 	if haskey(dpc_r, :HR)
 		c += dpc_r[:HR][1]
 	end
-	
+
 	return c
 end
-super_table[:pins] = [ pins(r) for r in eachrow(super_table) ]
+uber_table[:pins] = [ pins(r) for r in eachrow(uber_table) ]
+uber_table[:cost_per_pin] = uber_table[:price]./uber_table[:pins]
 
 #TODO More columns.
 
 # Save it just for documentation.
-write_table("tmp/super_table.xls", "super_table", super_table)
+write_table("tmp/uber_table.xls", "uber_table", uber_table)
 
 ###############################################################################
 
-# cost per pin
-t = deepcopy(super_table)
+# Select those who have needed stock.
+uber_table = uber_table[uber_table[:stock_vs_need] .>= 0, :]
 
-sort!(t, cols = :price)
+# Cost per pin:
+sort!(uber_table, cols = :cost_per_pin)
+write_table("tmp/cost_per_pin.xls", "cost_per_pin", uber_table)
+
 
 #TODO Check:
 # - cost per pin
