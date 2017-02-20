@@ -58,7 +58,7 @@ module Tables
 
 			devices = s[:, 1][:]
 
-			p = read_and_clean_table(fn, "Pins", "B1:Z2")
+			p = read_and_clean_table(fn, "Pins", "B1:AZ2")
 			packages = p[!isna(p[:])]
 			# Grouped by compatibility.
 			grouped_packages = []
@@ -74,11 +74,11 @@ module Tables
 				Bool[length(s) == 2 for s in speed_grades]
 			]
 
-			pt = read_and_clean_table(fn, "Pins", "B5:Z5")
+			pt = read_and_clean_table(fn, "Pins", "B5:AZ5")
 			pt_per_p = Int(length(pt)/length(grouped_packages))
 			pin_types = pt[1:pt_per_p]
 
-			combs = read_and_clean_table(fn, "Pins", "B7:Z30")
+			combs = read_and_clean_table(fn, "Pins", "B7:AZ30")
 
 			# First column is device-package combination.
 			# Others columns are pin count for pin_types, respectively.

@@ -22,14 +22,26 @@ uber_table = offers
 
 function pins(r)
 	dpc_t = families[r[:family]]["dev_pack_combs"]
+	# Make device-package pair.
 	dp = (r[:device], r[:package])
+	
+	# Search for offers with such package.
 	i = findfirst(dpc_t[:dev_pack], dp)
-	@assert(i != 0)
+
+	# No such device-package pair.
+	if i == 0
+		return 0
+	end
+	
+	# Extract row for device-package pair, to harvest pins data.
 	dpc_r = dpc_t[i, :]
 
 	c = 0
 	if haskey(dpc_r, :HR)
 		c += dpc_r[:HR][1]
+	end
+	if haskey(dpc_r, :HP)
+		c += dpc_r[:HP][1]
 	end
 
 	return c
@@ -47,9 +59,36 @@ write_table("tmp/uber_table.xls", "uber_table", uber_table)
 # Select those who have needed stock.
 uber_table = uber_table[uber_table[:stock_vs_need] .>= 0, :]
 
+# Cheapest from family:
+println("Cheapest Artix-7:")
+println(
+	sort(
+		uber_table[uber_table[:family] .== "Artix-7", :],
+		cols = :price
+	)[1, :]
+)
+println("Cheapest Kintex-7:")
+println(
+	sort(
+		uber_table[uber_table[:family] .== "Kintex-7", :],
+		cols = :price
+	)[1, :]
+)
+println("Cheapest Virtex-7:")
+println(
+	sort(
+		uber_table[uber_table[:family] .== "Virtex-7", :],
+		cols = :price
+	)[1, :]
+)
+
+
 # Cost per pin:
-sort!(uber_table, cols = :cost_per_pin)
-write_table("tmp/cost_per_pin.xls", "cost_per_pin", uber_table)
+cost_per_pin = deepcopy(uber_table)
+sort!(cost_per_pin, cols = :cost_per_pin)
+write_table("tmp/cost_per_pin.xls", "cost_per_pin", cost_per_pin)
+println("Cheapers per pin:")
+println(cost_per_pin[1, :])
 
 
 #TODO Check:

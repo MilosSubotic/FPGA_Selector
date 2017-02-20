@@ -159,7 +159,7 @@ module Octopart
 			a = collect(map((t) -> (t[1][1], t[2], t[1][2]), cp))
 			append!(dev_speed_pack, a)
 
-			append!(family_names, fill(fn, length(search_mpns)))
+			append!(family_names, fill(fn, length(m)))
 		end
 
 		o = get_offers(
