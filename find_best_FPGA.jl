@@ -58,6 +58,7 @@ write_table("tmp/uber_table.xls", "uber_table", uber_table)
 
 # Select those who have needed stock.
 uber_table = uber_table[uber_table[:stock_vs_need] .>= 0, :]
+sort!(uber_table, cols = :cost_per_pin)
 
 # Cheapest from family:
 println("Cheapest Artix-7:")
@@ -85,11 +86,18 @@ println(
 
 # Cost per pin:
 cost_per_pin = deepcopy(uber_table)
-sort!(cost_per_pin, cols = :cost_per_pin)
 write_table("tmp/cost_per_pin.xls", "cost_per_pin", cost_per_pin)
 println("Cheapers per pin:")
-println(cost_per_pin[1, :])
+best = cost_per_pin[1, :]
+println(best)
 
+# Same package, same pin number.
+same_package = uber_table[
+	(uber_table[:family] .== best[:family]) .*
+	(uber_table[:package] .== best[:package]), :]
+p = same_package[:pins]
+same_pin_num = all(p .== p[1])
+@show same_pin_num
 
 #TODO Check:
 # - cost per pin
