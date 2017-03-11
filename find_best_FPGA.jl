@@ -25,7 +25,7 @@ function pins(r)
 	# Make device-package pair.
 	dp = (r[:device], r[:package])
 	
-	# Search for offers with such package.
+	# Search for pins info with such device-package pair.
 	i = findfirst(dpc_t[:dev_pack], dp)
 
 	# No such device-package pair.
@@ -48,6 +48,35 @@ function pins(r)
 end
 uber_table[:pins] = [ pins(r) for r in eachrow(uber_table) ]
 uber_table[:cost_per_pin] = uber_table[:price]./uber_table[:pins]
+
+function HR_DDR_banks(r)
+	banks_t = families[r[:family]][:banks]
+	# Make device-package pair.
+	dp = (r[:device], r[:package])
+	
+	# Search for banks entry with such device-package.
+	i = findfirst(banks_t[:banks], dp)
+
+	# No such device-package pair.
+	if i == 0
+		return 0
+	end
+	
+	# Extract row for device-package pair, to harvest pins data.
+	banks_r = banks_t[i, :]
+
+	c = 0
+	if haskey(dpc_r, :HR)
+		c += dpc_r[:HR][1]
+	end
+	if haskey(dpc_r, :HP)
+		c += dpc_r[:HP][1]
+	end
+
+	return c
+end
+uber_table[:HR_DDR_banks] = [ HR_DDR_banks(r) for r in eachrow(uber_table) ]
+uber_table[:HP_DDR_banks] = [ HP_DDR_banks(r) for r in eachrow(uber_table) ]
 
 #TODO More columns.
 

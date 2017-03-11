@@ -99,6 +99,14 @@ module Tables
 					end
 				end
 			end
+         
+         # Key is device-package combination, value is table of banks.
+         banks = Dict()
+         #TODO Iterate over dev_pack_combs to obtain device-package combination 
+         # and push them as keys.
+         # banks[dp] = DataFrame(:bank = [], :pin_type = [], :pin_num = [])
+         # Open zip with ZipFile, iterater over files, parse all csv files, fill table.
+
 
 			tables = Dict(
 				"summary" => summary,
@@ -108,7 +116,8 @@ module Tables
 				"packages" => packages,
 				"grouped_packages" => grouped_packages,
 				"pin_types" => pin_types,
-				"dev_pack_combs" => dev_pack_combs
+				"dev_pack_combs" => dev_pack_combs,
+            "banks" => banks
 			)
 
 			families[name] = tables
