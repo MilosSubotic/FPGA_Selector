@@ -82,10 +82,10 @@ module Tables
 
 			# First column is device-package combination.
 			# Others columns are pin count for pin_types, respectively.
-			dev_pack_combs = DataFrame()
-			dev_pack_combs[:dev_pack] = []
+			dev_pack_pins = DataFrame()
+			dev_pack_pins[:dev_pack] = []
 			for pt in pin_types
-				dev_pack_combs[Symbol(pt)] = []
+				dev_pack_pins[Symbol(pt)] = []
 			end
 			for (c, gp) in enumerate(grouped_packages)
 				for (r, d) in enumerate(devices)
@@ -94,7 +94,7 @@ module Tables
 					if sum(pc) > 0
 						for p in gp
 							dp = (d, p)
-							push!(dev_pack_combs, [dp; pc])
+							push!(dev_pack_pins, [dp; pc])
 						end
 					end
 				end
@@ -102,7 +102,7 @@ module Tables
 		 
 		 # Key is device-package combination, value is table of banks.
 		 banks = Dict()
-		 #TODO Iterate over dev_pack_combs to obtain device-package combination 
+		 #TODO Iterate over dev_pack_pins to obtain device-package combination 
 		 # and push them as keys.
 		 # banks[dp] = DataFrame(:bank = [], :pin_type = [], :pin_num = [])
 		 # Open zip with ZipFile, iterater over files, parse all csv files, fill table.
@@ -116,7 +116,7 @@ module Tables
 				"packages" => packages,
 				"grouped_packages" => grouped_packages,
 				"pin_types" => pin_types,
-				"dev_pack_combs" => dev_pack_combs,
+				"dev_pack_pins" => dev_pack_pins,
 				"banks" => banks
 			)
 

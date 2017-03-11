@@ -21,12 +21,12 @@ offers = read_table("tmp/offers.xls", "offers")
 uber_table = offers
 
 function pins(r)
-	dpc_t = families[r[:family]]["dev_pack_combs"]
+	dpp_t = families[r[:family]]["dev_pack_pins"]
 	# Make device-package pair.
 	dp = (r[:device], r[:package])
 	
 	# Search for pins info with such device-package pair.
-	i = findfirst(dpc_t[:dev_pack], dp)
+	i = findfirst(dpp_t[:dev_pack], dp)
 
 	# No such device-package pair.
 	if i == 0
@@ -34,7 +34,7 @@ function pins(r)
 	end
 	
 	# Extract row for device-package pair, to harvest pins data.
-	dpc_r = dpc_t[i, :]
+	dpp_r = dpp_t[i, :]
 
 	c = 0
 	if haskey(dpc_r, :HR)

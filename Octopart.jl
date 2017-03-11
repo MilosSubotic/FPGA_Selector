@@ -144,7 +144,7 @@ module Octopart
 		dev_speed_pack = []
 		family_names = []
 		for (fn, f) in FPGA_families
-			dpc = f["dev_pack_combs"][:dev_pack]
+			dpc = f["dev_pack_pins"][:dev_pack]
 			if simple_speed_grades
 				sg = f["simple_speed_grades"]
 			else
