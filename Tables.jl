@@ -12,6 +12,7 @@ module Tables
 
 	using DataArrays
 	using DataFrames
+	using ZipFile
 
 
 	#TODO Make some max i.e. end for range coding, like small x or whatever.
@@ -20,6 +21,33 @@ module Tables
 		t = t[Bool[!all(isna(t[r, :])) for r in 1:size(t)[1]], :]
 		t = t[:, Bool[!all(isna(t[:, c])) for c in 1:size(t)[2]]]
 		return t
+	end
+
+	function parse_csv_file(f)
+		#TODO Parse f.name to obtain (device, package).
+		# dp = (device, package)
+
+		# Bank table.
+		bt = DataFrame(
+			:bank = [],
+			:pin_type = [],
+			:pin_num = [],
+			:byte_group_0_pin_num = [],
+			:byte_group_1_pin_num = [],
+			:byte_group_2_pin_num = [],
+			:byte_group_3_pin_num = [],
+		)
+
+		# Read pin stuff.
+		ls = readlines(f)
+		for l in ls[4:end-2]
+			r = split(l, ',')
+			bank = r[4]
+			byte_group = r[3]
+			pin_type = r[7]
+		end
+
+		return dp, bt
 	end
 
 	function read_families()
@@ -101,13 +129,23 @@ module Tables
 					end
 				end
 			end
-		 
+		 	
 			# Key is device-package combination, value is table of banks.
 			dev_pack_banks = Dict()
-			#TODO Iterate over dev_pack_pins to obtain device-package combination 
-			# and push them as keys.
-			# dev_pack_banks[dp] = DataFrame(:bank = [], :pin_type = [], :pin_num = [])
-			# Open zip with ZipFile, iterater over files, parse all csv files, fill table.
+			zip_fn = fn[1:end-length(".xls")] * ".zip"
+			if isfile(zip_fn)
+				@show zip_fn
+				
+				z = ZipFile.Reader(zip_fn)
+					for f in z.files
+						if endswith(f.name, ".csv")
+							#TODO
+							#dp, bt = parse_csv_file(f)
+							#dev_pack_banks[dp] = bt
+						end
+					end
+				close(z)
+			end
 
 
 			tables = Dict(
