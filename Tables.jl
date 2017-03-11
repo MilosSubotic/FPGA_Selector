@@ -26,7 +26,9 @@ module Tables
 		xls_files = []
 		for (r, d, f) in walkdir("families/")
 			for ff in f
-				push!(xls_files, joinpath(r, ff))
+				if endswith(ff, ".xls")
+					push!(xls_files, joinpath(r, ff))
+				end
 			end
 		end
 
@@ -100,12 +102,12 @@ module Tables
 				end
 			end
 		 
-		 # Key is device-package combination, value is table of banks.
-		 banks = Dict()
-		 #TODO Iterate over dev_pack_pins to obtain device-package combination 
-		 # and push them as keys.
-		 # banks[dp] = DataFrame(:bank = [], :pin_type = [], :pin_num = [])
-		 # Open zip with ZipFile, iterater over files, parse all csv files, fill table.
+			# Key is device-package combination, value is table of banks.
+			dev_pack_banks = Dict()
+			#TODO Iterate over dev_pack_pins to obtain device-package combination 
+			# and push them as keys.
+			# dev_pack_banks[dp] = DataFrame(:bank = [], :pin_type = [], :pin_num = [])
+			# Open zip with ZipFile, iterater over files, parse all csv files, fill table.
 
 
 			tables = Dict(
@@ -117,7 +119,7 @@ module Tables
 				"grouped_packages" => grouped_packages,
 				"pin_types" => pin_types,
 				"dev_pack_pins" => dev_pack_pins,
-				"banks" => banks
+				"dev_pack_banks" => dev_pack_banks
 			)
 
 			families[name] = tables
