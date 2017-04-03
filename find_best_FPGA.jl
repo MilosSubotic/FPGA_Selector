@@ -49,8 +49,11 @@ end
 uber_table[:pins] = [ pins(r) for r in eachrow(uber_table) ]
 uber_table[:cost_per_pin] = uber_table[:price]./uber_table[:pins]
 
-pins_for_byte = 10
-function DDR_bytes_per_cols(pin_type, col)
+###############################################################################
+
+pins_for_byte_group = 12 #TODO Could it be lower?
+
+function DDR_bytes_groups_per_cols(pin_type, col)
 	counts = Int[]
 	for r in eachrow(uber_table)
 		dpb = families[r[:family]]["dev_pack_banks"]
@@ -73,11 +76,12 @@ function DDR_bytes_per_cols(pin_type, col)
 				if bank != "NA" && length(bank) == 2 && r[:pin_type] == pin_type &&
 					parse(Int, bank[1]) == col
 
-					if r[:byte_group_0_pin_num] >= pins_for_byte &&
-						r[:byte_group_1_pin_num] >= pins_for_byte &&
-						r[:byte_group_2_pin_num] >= pins_for_byte &&
-						r[:byte_group_3_pin_num] >= pins_for_byte
-						count += 1
+					# All 4 byte groups needed.
+					if r[:byte_group_0_pin_num] >= pins_for_byte_group &&
+						r[:byte_group_1_pin_num] >= pins_for_byte_group &&
+						r[:byte_group_2_pin_num] >= pins_for_byte_group &&
+						r[:byte_group_3_pin_num] >= pins_for_byte_group
+						count += 4
 					end
 				end
 			end
@@ -88,14 +92,101 @@ function DDR_bytes_per_cols(pin_type, col)
 
 	return counts
 end
-uber_table[:HR_DDR_B_c1] = DDR_bytes_per_cols(:HR, 1)
-uber_table[:HR_DDR_B_c2] = DDR_bytes_per_cols(:HR, 2)
-uber_table[:HR_DDR_B_c3] = DDR_bytes_per_cols(:HR, 3)
-uber_table[:HR_DDR_B_c4] = DDR_bytes_per_cols(:HR, 4)
-uber_table[:HP_DDR_B_c1] = DDR_bytes_per_cols(:HP, 1)
-uber_table[:HP_DDR_B_c2] = DDR_bytes_per_cols(:HP, 2)
-uber_table[:HP_DDR_B_c3] = DDR_bytes_per_cols(:HP, 3)
-uber_table[:HP_DDR_B_c4] = DDR_bytes_per_cols(:HP, 4)
+uber_table[:HR_DDR_BG_c1] = DDR_bytes_groups_per_cols(:HR, 1)
+uber_table[:HR_DDR_BG_c2] = DDR_bytes_groups_per_cols(:HR, 2)
+uber_table[:HR_DDR_BG_c3] = DDR_bytes_groups_per_cols(:HR, 3)
+uber_table[:HR_DDR_BG_c4] = DDR_bytes_groups_per_cols(:HR, 4)
+uber_table[:HP_DDR_BG_c1] = DDR_bytes_groups_per_cols(:HP, 1)
+uber_table[:HP_DDR_BG_c2] = DDR_bytes_groups_per_cols(:HP, 2)
+uber_table[:HP_DDR_BG_c3] = DDR_bytes_groups_per_cols(:HP, 3)
+uber_table[:HP_DDR_BG_c4] = DDR_bytes_groups_per_cols(:HP, 4)
+@assert sum(DDR_bytes_groups_per_cols(:HP, 5)) == 0
+
+###############################################################################
+
+function BG_to_B(BG)
+	#TODO What if could make 6 bytes?
+	if BG >= 11*4
+		warn("Could set 4 DIMMs on one column?")
+		return 8*4
+	elseif BG >= 11*3
+		return 8*3
+	elseif BG >= 11*2
+		return 8*2
+	elseif BG >= 11
+		return 8
+	elseif BG >= 7
+		return 4
+	elseif BG >= 5
+		return 2
+	elseif BG >= 4
+		return 1
+	else
+		return 0
+	end
+end
+
+N = size(uber_table)[1]
+uber_table[:HR_DDR_B] = Vector{Int}(N)
+uber_table[:HP_DDR_B] = Vector{Int}(N)
+for r in eachrow(uber_table)
+	r[:HR_DDR_B] = 
+		BG_to_B(r[:HR_DDR_BG_c1]) +
+		BG_to_B(r[:HR_DDR_BG_c2]) +
+		BG_to_B(r[:HR_DDR_BG_c3]) +
+		BG_to_B(r[:HR_DDR_BG_c4])
+	r[:HP_DDR_B] = 
+		BG_to_B(r[:HP_DDR_BG_c1]) +
+		BG_to_B(r[:HP_DDR_BG_c2]) +
+		BG_to_B(r[:HP_DDR_BG_c3]) +
+		BG_to_B(r[:HP_DDR_BG_c4])
+end
+# Not so good metric.
+uber_table[:DDR_B] = uber_table[:HR_DDR_B] + uber_table[:HP_DDR_B]
+#TODO Bandwidth of HR and HP.
+
+###############################################################################
+
+function BG_to_DIMM(BG)
+	if BG >= 11*4
+		warn("Could set 4 DIMMs on one column?")
+		return 4
+	elseif BG >= 11*3
+		return 3
+	elseif BG >= 11*2
+		return 2
+	elseif BG >= 11
+		return 1
+	else
+		return 0
+	end
+end
+
+N = size(uber_table)[1]
+uber_table[:HR_DIMM] = Vector{Int}(N)
+uber_table[:HP_DIMM] = Vector{Int}(N)
+for r in eachrow(uber_table)
+	r[:HR_DIMM] = 
+		BG_to_DIMM(r[:HR_DDR_BG_c1]) +
+		BG_to_DIMM(r[:HR_DDR_BG_c2]) +
+		BG_to_DIMM(r[:HR_DDR_BG_c3]) +
+		BG_to_DIMM(r[:HR_DDR_BG_c4])
+	r[:HP_DIMM] = 
+		BG_to_DIMM(r[:HP_DDR_BG_c1]) +
+		BG_to_DIMM(r[:HP_DDR_BG_c2]) +
+		BG_to_DIMM(r[:HP_DDR_BG_c3]) +
+		BG_to_DIMM(r[:HP_DDR_BG_c4])
+end
+# Not so good metric.
+uber_table[:DIMM] = uber_table[:HR_DIMM] + uber_table[:HP_DIMM]
+#TODO Bandwidth of HR and HP.
+
+###############################################################################
+
+uber_table[:cost_per_DDR_B] = uber_table[:price]./uber_table[:DDR_B]
+uber_table[:cost_per_DIMM] = uber_table[:price]./uber_table[:DIMM]
+
+###############################################################################
 
 # Save it just for documentation.
 write_table("tmp/uber_table.xls", "uber_table", uber_table)
@@ -104,53 +195,67 @@ write_table("tmp/uber_table.xls", "uber_table", uber_table)
 
 # Select those who have needed stock.
 uber_table = uber_table[uber_table[:stock_vs_need] .>= 0, :]
-sort!(uber_table, cols = :cost_per_pin)
+
+###############################################################################
+
+# Cost per pin:
+cost_per_pin = deepcopy(uber_table)
+sort!(cost_per_pin, cols = :cost_per_pin)
 
 # Cheapest from family:
 println("Cheapest Artix-7:")
 println(
 	sort(
-		uber_table[uber_table[:family] .== "Artix-7", :],
+		cost_per_pin[cost_per_pin[:family] .== "Artix-7", :],
 		cols = :price
 	)[1, :]
 )
 println("Cheapest Kintex-7:")
 println(
 	sort(
-		uber_table[uber_table[:family] .== "Kintex-7", :],
+		cost_per_pin[cost_per_pin[:family] .== "Kintex-7", :],
 		cols = :price
 	)[1, :]
 )
 println("Cheapest Virtex-7:")
 println(
 	sort(
-		uber_table[uber_table[:family] .== "Virtex-7", :],
+		cost_per_pin[cost_per_pin[:family] .== "Virtex-7", :],
 		cols = :price
 	)[1, :]
 )
 
-
-# Cost per pin:
-cost_per_pin = deepcopy(uber_table)
 write_table("tmp/cost_per_pin.xls", "cost_per_pin", cost_per_pin)
 println("Cheapers per pin:")
 best = cost_per_pin[1, :]
 println(best)
 
+#TODO?
 # Same package, same pin number.
-same_package = uber_table[
-	(uber_table[:family] .== best[:family]) .*
-	(uber_table[:package] .== best[:package]), :]
+same_package = cost_per_pin[
+	(cost_per_pin[:family] .== best[:family]) .*
+	(cost_per_pin[:package] .== best[:package]), :]
 p = same_package[:pins]
 same_pin_num = all(p .== p[1])
 @show same_pin_num
 
-# DDR bytes.
+###############################################################################
+
+# Cost per memory width:
+cost_per_DDR_B = deepcopy(uber_table)
+sort!(cost_per_DDR_B, cols = :cost_per_DDR_B)
+
+cost_per_DIMM = deepcopy(uber_table[uber_table[:DIMM] .!= 0, :])
+sort!(cost_per_DIMM, cols = :cost_per_DIMM)
+
+###############################################################################
+
+#TODO Check DSP performance and bandwidth with Wang ratio.
 
 #TODO Check:
-# - cost per pin
-# - cost per pin bandwidth
-# - cost per SO-DIMM badwidth (sharing common pins or not)
+# + cost per pin
+# + cost per pin bandwidth
+# + cost per SO-DIMM badwidth (sharing common pins or not)
 # - compare price with and without stock
 # - cost with and without PCIe
 # - without PCIe and user rest of SO-DIMM pins for parallel bus.

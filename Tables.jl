@@ -196,7 +196,8 @@ module Tables
 					end
 				end
 			end
-			@assert length(fn_banks) == 0
+			#@assert length(fn_banks) == 0
+			println("Not added dev-pack to bank data: ", keys(fn_banks))
 
 
 			tables = Dict(
