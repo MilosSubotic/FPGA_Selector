@@ -24,18 +24,15 @@ module Tables
 	end
 
 	function parse_csv_file(f)
-		#TODO Parse f.name to obtain (device, package).
-		# dp = (device, package)
-
 		# Bank table.
 		bt = DataFrame(
-			:bank = [],
-			:pin_type = [],
-			:pin_num = [],
-			:byte_group_0_pin_num = [],
-			:byte_group_1_pin_num = [],
-			:byte_group_2_pin_num = [],
-			:byte_group_3_pin_num = [],
+			bank = [],
+			pin_type = [],
+			pin_num = [],
+			byte_group_0_pin_num = [],
+			byte_group_1_pin_num = [],
+			byte_group_2_pin_num = [],
+			byte_group_3_pin_num = [],
 		)
 
 		# Read pin stuff.
@@ -45,9 +42,33 @@ module Tables
 			bank = r[4]
 			byte_group = r[3]
 			pin_type = r[7]
+
+			if !(bank in bt[:bank])
+				push!(bt, [bank; pin_type; 0; 0;0;0;0])
+			end
+			i = findfirst(bt[:bank], bank)
+			@assert i != 0
+
+			if pin_type != "NA"
+				bt[i, :pin_type] = pin_type
+			end
+			bt[i, :pin_num] += 1
+
+			if byte_group != "NA"
+				byte_group = parse(Int, byte_group)
+			end
+			if byte_group == 0
+				bt[i, :byte_group_0_pin_num] += 1
+			elseif byte_group == 1
+				bt[i, :byte_group_1_pin_num] += 1
+			elseif byte_group == 2
+				bt[i, :byte_group_2_pin_num] += 1
+			elseif byte_group == 3
+				bt[i, :byte_group_3_pin_num] += 1
+			end
 		end
 
-		return dp, bt
+		return f.name, bt
 	end
 
 	function read_families()
@@ -131,21 +152,51 @@ module Tables
 			end
 		 	
 			# Key is device-package combination, value is table of banks.
-			dev_pack_banks = Dict()
 			zip_fn = fn[1:end-length(".xls")] * ".zip"
+			fn_banks = Dict()
 			if isfile(zip_fn)
 				@show zip_fn
 				
 				z = ZipFile.Reader(zip_fn)
 					for f in z.files
 						if endswith(f.name, ".csv")
-							#TODO
-							#dp, bt = parse_csv_file(f)
-							#dev_pack_banks[dp] = bt
+							fn, bt = parse_csv_file(f)
+							fn_banks[fn] = bt
 						end
 					end
 				close(z)
 			end
+			dev_pack_banks = Dict()
+			for d in devices
+				for gp in grouped_packages
+					found = true
+
+					for p in gp
+						dp = (d, p)
+						if dp in dev_pack_pins[:dev_pack]
+							# If there is combination,
+							# then need to have csv file.
+							found = false
+							fn = lowercase(dp[1] * dp[2] * "pkg.csv")
+							if haskey(fn_banks, fn)
+								for p in gp
+									dp = (d, p)
+									dev_pack_banks[dp] = fn_banks[fn]
+								end
+								delete!(fn_banks, fn)
+								found = true
+								break # Next gp
+							end
+						end
+					end
+					
+					if !found
+						warn("Do not have banks info for device: ", d, 
+							" packages: ", gp)
+					end
+				end
+			end
+			@assert length(fn_banks) == 0
 
 
 			tables = Dict(

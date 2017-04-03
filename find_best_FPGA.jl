@@ -37,11 +37,11 @@ function pins(r)
 	dpp_r = dpp_t[i, :]
 
 	c = 0
-	if haskey(dpc_r, :HR)
-		c += dpc_r[:HR][1]
+	if haskey(dpp_r, :HR)
+		c += dpp_r[:HR][1]
 	end
-	if haskey(dpc_r, :HP)
-		c += dpc_r[:HP][1]
+	if haskey(dpp_r, :HP)
+		c += dpp_r[:HP][1]
 	end
 
 	return c
@@ -75,8 +75,8 @@ function HR_DDR_banks(r)
 
 	return c
 end
-uber_table[:HR_DDR_banks] = [ HR_DDR_banks(r) for r in eachrow(uber_table) ]
-uber_table[:HP_DDR_banks] = [ HP_DDR_banks(r) for r in eachrow(uber_table) ]
+#uber_table[:HR_DDR_banks] = [ HR_DDR_banks(r) for r in eachrow(uber_table) ]
+#uber_table[:HP_DDR_banks] = [ HP_DDR_banks(r) for r in eachrow(uber_table) ]
 
 #TODO More columns.
 
