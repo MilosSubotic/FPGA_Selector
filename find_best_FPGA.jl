@@ -49,36 +49,53 @@ end
 uber_table[:pins] = [ pins(r) for r in eachrow(uber_table) ]
 uber_table[:cost_per_pin] = uber_table[:price]./uber_table[:pins]
 
-function HR_DDR_banks(r)
-	banks_t = families[r[:family]][:banks]
-	# Make device-package pair.
-	dp = (r[:device], r[:package])
+pins_for_byte = 10
+function DDR_bytes_per_cols(pin_type, col)
+	counts = Int[]
+	for r in eachrow(uber_table)
+		dpb = families[r[:family]]["dev_pack_banks"]
+		# Make device-package pair.
+		dp = (r[:device], r[:package])
+
+		count = 0
+
+		# No such device-package pair.
+		if !haskey(dpb, dp)	
+			warn("No bank data for ", dp)
+		else
+			# Bank table.
+			bt = dpb[dp]
+
+			pin_type = string(pin_type)
 	
-	# Search for banks entry with such device-package.
-	i = findfirst(banks_t[:banks], dp)
+			for r in eachrow(bt)
+				bank = r[:bank]
+				if bank != "NA" && length(bank) == 2 && r[:pin_type] == pin_type &&
+					parse(Int, bank[1]) == col
 
-	# No such device-package pair.
-	if i == 0
-		return 0
-	end
-	
-	# Extract row for device-package pair, to harvest pins data.
-	banks_r = banks_t[i, :]
+					if r[:byte_group_0_pin_num] >= pins_for_byte &&
+						r[:byte_group_1_pin_num] >= pins_for_byte &&
+						r[:byte_group_2_pin_num] >= pins_for_byte &&
+						r[:byte_group_3_pin_num] >= pins_for_byte
+						count += 1
+					end
+				end
+			end
+		end
 
-	c = 0
-	if haskey(dpc_r, :HR)
-		c += dpc_r[:HR][1]
-	end
-	if haskey(dpc_r, :HP)
-		c += dpc_r[:HP][1]
+		push!(counts, count)
 	end
 
-	return c
+	return counts
 end
-#uber_table[:HR_DDR_banks] = [ HR_DDR_banks(r) for r in eachrow(uber_table) ]
-#uber_table[:HP_DDR_banks] = [ HP_DDR_banks(r) for r in eachrow(uber_table) ]
-
-#TODO More columns.
+uber_table[:HR_DDR_B_c1] = DDR_bytes_per_cols(:HR, 1)
+uber_table[:HR_DDR_B_c2] = DDR_bytes_per_cols(:HR, 2)
+uber_table[:HR_DDR_B_c3] = DDR_bytes_per_cols(:HR, 3)
+uber_table[:HR_DDR_B_c4] = DDR_bytes_per_cols(:HR, 4)
+uber_table[:HP_DDR_B_c1] = DDR_bytes_per_cols(:HP, 1)
+uber_table[:HP_DDR_B_c2] = DDR_bytes_per_cols(:HP, 2)
+uber_table[:HP_DDR_B_c3] = DDR_bytes_per_cols(:HP, 3)
+uber_table[:HP_DDR_B_c4] = DDR_bytes_per_cols(:HP, 4)
 
 # Save it just for documentation.
 write_table("tmp/uber_table.xls", "uber_table", uber_table)
@@ -127,6 +144,8 @@ same_package = uber_table[
 p = same_package[:pins]
 same_pin_num = all(p .== p[1])
 @show same_pin_num
+
+# DDR bytes.
 
 #TODO Check:
 # - cost per pin
