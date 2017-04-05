@@ -109,7 +109,7 @@ module Tables
 
 			devices = s[:, 1][:]
 
-			p = read_and_clean_table(fn, "Pins", "B1:AZ2")
+			p = read_and_clean_table(fn, "Pins", "C1:AZ2")
 			packages = p[!isna(p[:])]
 			# Grouped by compatibility.
 			grouped_packages = []
@@ -119,7 +119,7 @@ module Tables
 				push!(grouped_packages, gp)
 			end
 
-			ms = read_and_clean_table(fn, "Memory_Speed", "B1:Z2")
+			ms = read_and_clean_table(fn, "Memory_Speed", "C1:Z2")
 			speed_grades = ms[!isna(ms[:])]
 			simple_speed_grades = speed_grades[
 				Bool[length(s) == 2 for s in speed_grades]
