@@ -83,11 +83,11 @@ module Tables
 
 		families = Dict{}()
 
-		for fn in xls_files
-			name = basename(fn)[1:end-length(".xls")]
+		for xls_fn in xls_files
+			name = basename(xls_fn)[1:end-length(".xls")]
 
 			#TODO Headers.
-			hs = read_and_clean_table(fn, "Summary", "A1:Z100")
+			hs = read_and_clean_table(xls_fn, "Summary", "A1:Z100")
 			h = hs[1, :][:]
 			s = hs[2:end, :]
 
@@ -109,7 +109,7 @@ module Tables
 
 			devices = s[:, 1][:]
 
-			p = read_and_clean_table(fn, "Pins", "C1:AZ2")
+			p = read_and_clean_table(xls_fn, "Pins", "B1:AZ2")
 			packages = p[!isna(p[:])]
 			# Grouped by compatibility.
 			grouped_packages = []
@@ -119,17 +119,39 @@ module Tables
 				push!(grouped_packages, gp)
 			end
 
-			ms = read_and_clean_table(fn, "Memory_Speed", "C1:Z2")
-			speed_grades = ms[!isna(ms[:])]
+			sg = read_and_clean_table(xls_fn, "Memory_Speed", "C1:Z2")
+			speed_grades = sg[!isna(sg[:])]
 			simple_speed_grades = speed_grades[
 				Bool[length(s) == 2 for s in speed_grades]
 			]
+			
+			ds = read_and_clean_table(xls_fn, "Memory_Speed", "B5:Z10")
+			# pin_type -> speed_grade -> ddr_speed
+			ddr_speeds = Dict{String, Dict{String, Int}}()
+			@show 
+			for r in 1:size(ds)[1]
+				pin_type = ds[r, 1]
+				d = Dict{String, Int}()
+				@assert size(sg)[2] == size(ds)[2]-1
+				for c2 in 1:size(sg)[2]
+					@show ds[r, c2+1]
+					s = Int(ds[r, c2+1])
+					for r2 in 1:size(sg)[1]
+						speed_grade = sg[r2, c2]
+						if !isna(speed_grade)
+							d[speed_grade] = s
+						end
+					end
+				end
+				ddr_speeds[pin_type] = d
+			end
 
-			pt = read_and_clean_table(fn, "Pins", "B5:AZ5")
+
+			pt = read_and_clean_table(xls_fn, "Pins", "B5:AZ5")
 			pt_per_p = Int(length(pt)/length(grouped_packages))
 			pin_types = pt[1:pt_per_p]
 
-			combs = read_and_clean_table(fn, "Pins", "B7:AZ30")
+			combs = read_and_clean_table(xls_fn, "Pins", "B7:AZ30")
 
 			# First column is device-package combination.
 			# Others columns are pin count for pin_types, respectively.
@@ -152,11 +174,9 @@ module Tables
 			end
 		 	
 			# Key is device-package combination, value is table of banks.
-			zip_fn = fn[1:end-length(".xls")] * ".zip"
+			zip_fn = xls_fn[1:end-length(".xls")] * ".zip"
 			fn_banks = Dict()
 			if isfile(zip_fn)
-				@show zip_fn
-				
 				z = ZipFile.Reader(zip_fn)
 					for f in z.files
 						if endswith(f.name, ".csv")
@@ -205,6 +225,7 @@ module Tables
 				"devices" => devices,
 				"speed_grades" => speed_grades,
 				"simple_speed_grades" => simple_speed_grades,
+				"ddr_speeds" => ddr_speeds,
 				"packages" => packages,
 				"grouped_packages" => grouped_packages,
 				"pin_types" => pin_types,
