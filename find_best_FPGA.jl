@@ -8,17 +8,12 @@ using DataFrames
 # Config.
 
 on_stock = true
+# PCB, PSU...
+fixed_cost = 0
 
 ###############################################################################
 
 families = read_families()
-
-# Hack for having some FPGAs in pinout zips.
-a = families["Artix-7"]["dev_pack_banks"]
-a[("XC7A12T", "CPG236")] = a[("XC7A15T", "CPG236")]
-a[("XC7A12T", "CSG325")] = a[("XC7A15T", "CSG325")]
-a[("XC7A25T", "CPG236")] = a[("XC7A35T", "CPG236")]
-a[("XC7A25T", "CSG325")] = a[("XC7A35T", "CSG325")]
 
 #Read offers with params from XLS.
 if !isfile("tmp/offers.xls")
@@ -32,7 +27,18 @@ offers = read_table("tmp/offers.xls", "offers")
 # Super table with all kind of params needed for check bellow.
 uber_table = offers
 
+# Hack for having some FPGAs in pinout zips.
+a = families["Artix-7"]["dev_pack_banks"]
+a[("XC7A12T", "CPG236")] = a[("XC7A15T", "CPG236")]
+a[("XC7A12T", "CSG325")] = a[("XC7A15T", "CSG325")]
+a[("XC7A25T", "CPG236")] = a[("XC7A35T", "CPG236")]
+a[("XC7A25T", "CSG325")] = a[("XC7A35T", "CSG325")]
+
 N_rows = size(uber_table)[1]
+
+#TODO Should make metric for PCB price depending on package.
+# Then little larger FPGAs will be better.
+cost = uber_table[:price] .+ fixed_cost
 
 ###############################################################################
 
@@ -64,7 +70,7 @@ for r in eachrow(uber_table)
 	r[:pins] = c
 end
 
-uber_table[:cost_per_pin] = uber_table[:price]./uber_table[:pins]
+uber_table[:cost_per_pin] = cost./uber_table[:pins]
 
 ###############################################################################
 
@@ -210,8 +216,8 @@ uber_table[:DIMM] = uber_table[:HR_DIMM] + uber_table[:HP_DIMM]
 
 ###############################################################################
 
-uber_table[:cost_per_DDR_B] = uber_table[:price]./uber_table[:DDR_B]
-uber_table[:cost_per_DIMM] = uber_table[:price]./uber_table[:DIMM]
+uber_table[:cost_per_DDR_B] = cost./uber_table[:DDR_B]
+uber_table[:cost_per_DIMM] = cost./uber_table[:DIMM]
 
 ###############################################################################
 
@@ -225,8 +231,8 @@ uber_table[:DIMM_MBps] = uber_table[:HR_DIMM_MBps] + uber_table[:HP_DIMM_MBps]
 
 ###############################################################################
 
-uber_table[:cost_per_DDR_MBps] = uber_table[:price]./uber_table[:DDR_MBps]
-uber_table[:cost_per_DIMM_MBps] = uber_table[:price]./uber_table[:DIMM_MBps]
+uber_table[:cost_per_DDR_MBps] = cost./uber_table[:DDR_MBps]
+uber_table[:cost_per_DIMM_MBps] = cost./uber_table[:DIMM_MBps]
 
 ###############################################################################
 
