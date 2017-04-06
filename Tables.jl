@@ -128,13 +128,11 @@ module Tables
 			ds = read_and_clean_table(xls_fn, "Memory_Speed", "B5:Z10")
 			# pin_type -> speed_grade -> ddr_speed
 			ddr_speeds = Dict{String, Dict{String, Int}}()
-			@show 
 			for r in 1:size(ds)[1]
 				pin_type = ds[r, 1]
 				d = Dict{String, Int}()
 				@assert size(sg)[2] == size(ds)[2]-1
 				for c2 in 1:size(sg)[2]
-					@show ds[r, c2+1]
 					s = Int(ds[r, c2+1])
 					for r2 in 1:size(sg)[1]
 						speed_grade = sg[r2, c2]
