@@ -5,8 +5,20 @@ using Tables
 using DataFrames
 
 ###############################################################################
+# Config.
+
+on_stock = true
+
+###############################################################################
 
 families = read_families()
+
+# Hack for having some FPGAs in pinout zips.
+a = families["Artix-7"]["dev_pack_banks"]
+a[("XC7A12T", "CPG236")] = a[("XC7A15T", "CPG236")]
+a[("XC7A12T", "CSG325")] = a[("XC7A15T", "CSG325")]
+a[("XC7A25T", "CPG236")] = a[("XC7A35T", "CPG236")]
+a[("XC7A25T", "CSG325")] = a[("XC7A35T", "CSG325")]
 
 #Read offers with params from XLS.
 if !isfile("tmp/offers.xls")
@@ -224,7 +236,15 @@ write_table("tmp/uber_table.xls", "uber_table", uber_table)
 ###############################################################################
 
 # Select those who have needed stock.
-uber_table = uber_table[uber_table[:stock_vs_need] .>= 0, :]
+if on_stock
+	uber_table = uber_table[uber_table[:stock_vs_need] .>= 0, :]
+end
+
+###############################################################################
+# Cost.
+
+price = deepcopy(uber_table)
+sort!(price, cols = :price)
 
 ###############################################################################
 # Cost per pin.
