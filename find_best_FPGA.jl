@@ -236,8 +236,15 @@ uber_table[:cost_per_DIMM_MBps] = cost./uber_table[:DIMM_MBps]
 
 ###############################################################################
 
+macro save(table)
+	quote
+		n = $(string(table))
+		write_table("tmp/" * n * ".xlsx", n, $table)
+	end
+end
+
 # Save it just for documentation.
-write_table("tmp/uber_table.xls", "uber_table", uber_table)
+@save uber_table
 
 ###############################################################################
 
@@ -282,7 +289,7 @@ if false
 		)[1, :]
 	)
 
-	write_table("tmp/cost_per_pin.xls", "cost_per_pin", cost_per_pin)
+	@save cost_per_pin
 	println("Cheapers per pin:")
 	best = cost_per_pin[1, :]
 	println(best)
@@ -305,6 +312,7 @@ sort!(cost_per_DDR_MBps, cols = :cost_per_DDR_MBps)
 
 cost_per_DIMM_MBps = deepcopy(uber_table[uber_table[:DIMM] .!= 0, :])
 sort!(cost_per_DIMM_MBps, cols = :cost_per_DIMM_MBps)
+@save cost_per_DIMM_MBps
 
 best_for_DDR_is_best_for_DIMM = 
 	cost_per_DDR_MBps[1, :] == cost_per_DIMM_MBps[1, :]
