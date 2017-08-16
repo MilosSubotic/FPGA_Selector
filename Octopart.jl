@@ -27,6 +27,7 @@ module Octopart
 			sku = [],
 			seller = [],
 			stock = [],
+			moq = [],
 			price = []
 		)
 
@@ -93,10 +94,13 @@ module Octopart
 								end
 							end
 
-							if offer["moq"] != nothing
-								if offer["moq"] > needed_quantity
+							moq = offer["moq"]
+							if moq != nothing
+								if moq > needed_quantity
 									continue
 								end
+							else
+								moq = -1
 							end
 
 							p = nothing
@@ -118,7 +122,8 @@ module Octopart
 
 							push!(
 								all_offers,
-								[search_mpn, mpn, sku, seller, stock, price]
+								[search_mpn, mpn, sku, seller, 
+									stock, moq, price]
 							)
 						end
 					end
@@ -181,6 +186,7 @@ module Octopart
 		offers[:sku] = o[:sku]
 		offers[:seller] = o[:seller]
 		offers[:stock] = o[:stock]
+		offers[:moq] = o[:moq]
 		offers[:stock_vs_need] = o[:stock] - needed_quantity
 		offers[:price] = o[:price]
 
